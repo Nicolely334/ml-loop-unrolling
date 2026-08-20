@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Compiled files
+*.o
+*.so
+*.dylib
+*.exe
+*.out
+
+# LLVM build files
+build/
+cmake-build-*/
+
+# Generated LLVM files
+*.ll
+*.bc
+
+# Generated datasets
+data/raw/
+data/processed/
+
+# Experiment outputs
+results/
