@@ -46,14 +46,13 @@ Extracts 14 features per loop:
 
 ## Benchmarks
 
-11 C programs with different characteristics:
-- Small/large loops
-- Memory vs compute-intensive
-- Nested loops
-- Loops with branches
-- Different access patterns
+18 C programs with different characteristics:
+- **11 basic patterns** - small/large loops, memory vs compute-intensive, nested, branches
+- **7 PolyBench kernels** - matrix multiply, stencils, graph algorithms
 
-See `benchmarks/README.md` for details.
+Covers trip counts from 20 to 100M, simple to triply-nested loops, memory-bound to compute-bound.
+
+See `benchmarks/README.md` and `benchmarks/polybench/README.md` for details.
 
 ## Advanced Features
 

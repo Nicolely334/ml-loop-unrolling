@@ -1,6 +1,11 @@
 # Benchmarks
 
-11 C programs with different loop patterns for testing unrolling prediction.
+18 C programs with different loop patterns for testing unrolling prediction.
+
+## Structure
+
+- `*.c` - 11 basic benchmarks with simple patterns
+- `polybench/*.c` - 7 PolyBench-inspired kernels (see `polybench/README.md`)
 
 ## Programs
 
@@ -24,8 +29,10 @@
 # Single benchmark
 python src/compile_and_measure.py benchmarks/small_loop.c
 
-# All at once
+# All benchmarks (finds recursively)
 python src/collect_dataset.py --runs 20
+
+# Expected: ~30-50 loops total (some programs have multiple loops)
 ```
 
 ## Notes

@@ -105,7 +105,7 @@ def main():
         "--benchmarks-dir",
         type=Path,
         default=Path(__file__).parent.parent / "benchmarks",
-        help="Directory containing C benchmark files",
+        help="Directory containing C benchmark files (searches recursively)",
     )
     parser.add_argument(
         "--output",
@@ -138,8 +138,8 @@ def main():
 
     args = parser.parse_args()
 
-    # Find all benchmark files
-    benchmark_files = sorted(args.benchmarks_dir.glob(args.pattern))
+    # Find all benchmark files (recursive search)
+    benchmark_files = sorted(args.benchmarks_dir.rglob(args.pattern))
 
     if not benchmark_files:
         print(f"No benchmark files found in {args.benchmarks_dir} matching {args.pattern}")
