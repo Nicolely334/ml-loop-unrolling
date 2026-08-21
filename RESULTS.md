@@ -1,188 +1,105 @@
-# Results & Analysis
+# Results
 
-## Project Evolution
+## What Changed
 
-### Phase 1: Binary Classification (Initial)
-- **Dataset**: 62 loops from 18 benchmarks
-- **Problem**: 88.7% beneficial (too easy, just predict "always unroll")
-- **Metric**: 92.3% accuracy (only 3.6% better than baseline)
-- **Conclusion**: Not useful - baseline is too high
+Started with binary classification (beneficial/not) but that was pointless - 88.7% of loops were beneficial, so you could just always predict "yes" and get 88.7% accuracy. The ML model got 92.3% which sounds good but is only 3.6% better than the dumb baseline.
 
-### Phase 2: Regression + Expanded Dataset ✅
-- **Dataset**: **84 loops from 28 benchmarks**
-- **Balance**: **38.1% beneficial, 61.9% not** (much better!)
-- **Metric**: **Predict actual speedup** (0.840x to 1.375x range)
-- **Approach**: Random Forest Regressor, MAE as evaluation metric
+Switched to **regression** instead - predict the actual speedup number (like 1.15x or 0.92x). Much more useful.
 
-## Dataset Summary
+Also added 10 more benchmarks to get better diversity.
 
-| Metric | Value |
-|--------|-------|
-| **Total loops** | 84 |
-| **Benchmarks** | 28 programs |
-| **Speedup range** | 0.840x - 1.375x |
-| **Mean speedup** | 1.078x |
-| **Median speedup** | 1.035x |
-| **Std deviation** | 0.141 |
-| **Beneficial (>1.05x)** | 32 loops (38.1%) |
-| **Not beneficial** | 52 loops (61.9%) |
+## Dataset
 
-## Key Insights
+- **84 loops** from 28 C programs
+- Speedup range: **0.840x to 1.375x** (unrolling can actually hurt!)
+- Mean: 1.078x, Median: 1.035x
+- Using 1.05x threshold: 38% beneficial, 62% not (way better balance than before)
 
-### 1. What Makes Unrolling Beneficial?
+## What Works, What Doesn't
 
-**Best cases (>1.28x speedup):**
-- `jacobi_2d.c` - 1.375x (2D stencil, regular memory access)
-- `floyd_warshall.c` - 1.287x (graph shortest path)
-- `accumulator.c` - 1.186x (simple accumulation)
-- `dot_product.c` - 1.131x (vector multiply-add)
+**Best unrolling candidates:**
+- jacobi_2d (1.375x) - 2D stencil pattern
+- floyd_warshall (1.287x) - graph algorithm
+- accumulator (1.186x)
+- dot_product (1.131x)
 
-**Common patterns:**
-- Regular memory access patterns
-- High arithmetic intensity
-- Few branches
-- Predictable trip counts
+Pattern: regular memory access, arithmetic-heavy, few branches
 
-### 2. When Unrolling Hurts
+**Worst (unrolling hurts performance):**
+- loop_with_branch (0.840x) - conditional in loop body
+- bitcount (0.900x) - unpredictable inner loop
+- nested_loop (0.945x)
+- polynomial (0.952x)
 
-**Worst cases (<0.95x speedup):**
-- `loop_with_branch.c` - 0.840x (conditional inside loop)
-- `bitcount.c` - 0.900x (inner while loop, unpredictable)
-- `nested_loop.c` - 0.945x (complex nesting)
-- `polynomial.c` - 0.952x (short dependency chain)
+Pattern: branches, irregular patterns, memory-bound
 
-**Common patterns:**
-- Branches/conditionals inside loops
-- Irregular access patterns
-- Small trip counts
-- Memory-bound operations (cache thrashing)
+**Feature correlations are weak** - most features don't vary much. Need better engineered features (ratios, log transforms).
 
-### 3. Feature Correlations
+## Model
 
-Weak correlations found (most features constant across loops):
-- `num_load/store_instructions`: slight negative correlation
-- Need better engineered features (ratios, log transforms)
+Random Forest regressor with engineered features (memory_ratio, compute_ratio, trip_count_log).
 
-## Regression Model Performance
+Run `notebooks/04_regression_model.ipynb` for training and metrics.
 
-Using engineered features (memory_ratio, compute_ratio, trip_count_log, etc.):
+## Why Regression > Classification
 
-| Model | MAE | R² | Notes |
-|-------|-----|-----|-------|
-| **Random Forest** | TBD | TBD | Best for non-linear patterns |
-| **Ridge** | TBD | TBD | Regularized linear |
-| **Decision Tree** | TBD | TBD | Interpretable |
+Binary classification throws away information - a 1.06x speedup and 1.35x speedup are both just "beneficial". Can't rank or prioritize.
 
-*(Run `notebooks/04_regression_model.ipynb` to see actual metrics)*
+Regression predicts the actual number, so you can:
+- Rank loops by predicted benefit
+- Focus optimization on high-value targets
+- Set dynamic thresholds
+- MAE is easy to interpret ("avg wrong by 0.05x")
 
-## Why This Approach is Better
+## Use Cases
 
-### Binary Classification Problems:
-1. ❌ Throws away information (1.06x and 1.35x both "beneficial")
-2. ❌ Threshold arbitrary (why 1.05x?)
-3. ❌ Can't prioritize high-value loops
-4. ❌ Imbalanced dataset makes metrics misleading
-
-### Regression Advantages:
-1. ✅ Predicts actual speedup magnitude
-2. ✅ Can rank loops by predicted benefit
-3. ✅ More useful for compiler decisions ("focus on top 10%")
-4. ✅ MAE is interpretable ("avg error is 0.05x")
-5. ✅ Can set threshold dynamically based on context
-
-## Practical Use Cases
-
-### 1. Loop Ranking
 ```python
-# Predict all loops, sort by speedup, unroll top N%
-predictions = model.predict(loop_features)
-top_loops = np.argsort(predictions)[-10:]  # top 10%
-```
+# 1. Rank loops, unroll top 10%
+predictions = model.predict(features)
+top_loops = np.argsort(predictions)[-10:]
 
-### 2. Cost-Benefit Analysis
-```python
-# Only unroll if predicted benefit > code size cost
+# 2. Cost-benefit
 if predicted_speedup > 1.1 and loop_size < 100:
     unroll(loop)
+
+# 3. Replace LLVM heuristics for domain-specific code
 ```
 
-### 3. Compiler Integration
-```python
-# Replace LLVM's hard-coded heuristics with ML
-# Especially useful for domain-specific workloads
-```
+## LLVM Comparison
 
-## Comparison: ML vs LLVM
+Hard to compare directly - LLVM only logs loops it *actually unrolls* via `-Rpass=loop-unroll`, not the ones it skips.
 
-**Challenge**: LLVM only reports loops it *actually unrolls* (via `-Rpass=loop-unroll`).
-It doesn't log decisions to *not* unroll, making direct comparison difficult.
+Could measure with `-funroll-loops` vs `-fno-unroll-loops` and compare predictions to LLVM's choices. Find disagreements and see who's right.
 
-**Alternative approach**: 
-- Measure speedup with LLVM's `-funroll-loops` vs `-fno-unroll-loops`
-- Compare our predictions to LLVM's choices
-- Find cases where we disagree and measure which is better
+TODO for future work.
 
-## Next Steps to Improve
+## TODO
 
-1. **More data** (target: 500+ loops)
-   - SPEC CPU benchmarks
-   - LLVM test suite
-   - Real codebases
+1. More data - SPEC CPU, LLVM test suite (target 500+ loops)
+2. Better features - instruction mix percentages, stride patterns
+3. Multi-class - predict unroll factor (2x, 4x, 8x) instead of just speedup
+4. LLVM pass - integrate as actual compiler optimization
 
-2. **Better features**
-   - Instruction mix (% loads, % stores, % arithmetic)
-   - Memory access stride patterns
-   - Loop nesting depth
-   - Function call overhead
-
-3. **Multi-class prediction**
-   - Predict unroll factor (2x, 4x, 8x, 16x)
-   - More realistic than binary
-
-4. **LLVM integration**
-   - Build as LLVM analysis pass
-   - Compare against built-in heuristics
-   - A/B test on real workloads
-
-## Files
-
-| File | Purpose |
-|------|---------|
-| `notebooks/04_regression_model.ipynb` | Regression model training & analysis |
-| `notebooks/03_data_analysis.ipynb` | Feature engineering & exploration |
-| `scripts/analyze_predictions.py` | Dataset summary & insights |
-| `scripts/add_more_benchmarks.sh` | Generate 10 additional benchmarks |
-| `data/processed/dataset.csv` | 84 loops × 22 features + speedup |
-
-## How to Reproduce
+## Running
 
 ```bash
-# 1. Collect data (requires clang/LLVM)
+# collect data
 python3 src/collect_dataset.py --runs 10
 
-# 2. Analyze dataset
+# analyze
 python3 scripts/analyze_predictions.py
 
-# 3. Train regression model
+# train
 jupyter notebook notebooks/04_regression_model.ipynb
-
-# 4. Compare features
-python3 src/quick_train.py  # quick baseline
 ```
 
-## Conclusion
+## Summary
 
-**Is this project viable?**
+**Before**: 92.3% classification accuracy (but 88.7% baseline - basically useless)
 
-**Before**: No - 92.3% accuracy on 88.7% baseline is meaningless.
+**After**: Regression predicting actual speedup 0.84x-1.37x
+- Balanced dataset (38% vs 62%)
+- Can rank loops by benefit
+- Clear patterns: stencils win, branches lose
 
-**After**: Yes - predicting actual speedup (0.84x-1.37x) with:
-- Balanced dataset (38/62 split)
-- Interpretable metric (MAE = avg error in speedup)
-- Practical use (rank loops, dynamic thresholds)
-- Clear patterns (stencils good, branches bad)
-
-**Best results**: jacobi_2d (1.375x), floyd_warshall (1.287x)  
-**Worst results**: loop_with_branch (0.840x), bitcount (0.900x)
-
-The regression approach captures **real compiler insights** that binary classification missed.
+Regression is way more useful than binary classification for this problem.

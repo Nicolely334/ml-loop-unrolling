@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Quick training script to see model performance
+# quick baseline - this was the first attempt with binary classification
+# (see notebooks/04_regression_model.ipynb for the better approach)
 
 import pandas as pd
 import numpy as np

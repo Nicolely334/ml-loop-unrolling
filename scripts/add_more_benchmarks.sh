@@ -1,12 +1,10 @@
 #!/bin/bash
-# Quickly generate more diverse benchmark programs
+# generate more benchmarks for better dataset diversity
 
 BENCH_DIR="$(dirname "$0")/../benchmarks/generated"
 mkdir -p "$BENCH_DIR"
 
-echo "Generating additional benchmarks..."
-
-# 1. String operations
+echo "Generating benchmarks..."
 cat > "$BENCH_DIR/string_copy.c" << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,7 +28,7 @@ int main() {
 }
 EOF
 
-# 2. Dot product
+
 cat > "$BENCH_DIR/dot_product.c" << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +55,7 @@ int main() {
 }
 EOF
 
-# 3. Polynomial evaluation
+
 cat > "$BENCH_DIR/polynomial.c" << 'EOF'
 #include <stdio.h>
 
@@ -79,7 +77,7 @@ int main() {
 }
 EOF
 
-# 4. Sparse array access
+
 cat > "$BENCH_DIR/sparse_access.c" << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,7 +103,7 @@ int main() {
 }
 EOF
 
-# 5. Accumulator with dependency
+
 cat > "$BENCH_DIR/accumulator.c" << 'EOF'
 #include <stdio.h>
 
@@ -124,7 +122,7 @@ int main() {
 }
 EOF
 
-# 6. Image blur (2D stencil)
+
 cat > "$BENCH_DIR/blur.c" << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -165,7 +163,7 @@ int main() {
 }
 EOF
 
-# 7. Histogram
+
 cat > "$BENCH_DIR/histogram.c" << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -190,7 +188,7 @@ int main() {
 }
 EOF
 
-# 8. Prefix sum
+
 cat > "$BENCH_DIR/prefix_sum.c" << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -215,7 +213,7 @@ int main() {
 }
 EOF
 
-# 9. Bitwise operations
+
 cat > "$BENCH_DIR/bitcount.c" << 'EOF'
 #include <stdio.h>
 
@@ -239,7 +237,7 @@ int main() {
 }
 EOF
 
-# 10. Conditional assignment
+
 cat > "$BENCH_DIR/conditional.c" << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -264,5 +262,5 @@ int main() {
 }
 EOF
 
-echo "✓ Generated 10 new benchmarks in $BENCH_DIR"
-ls -1 "$BENCH_DIR"
+echo "Done"
+ls "$BENCH_DIR"
