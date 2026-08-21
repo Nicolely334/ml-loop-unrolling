@@ -62,3 +62,13 @@ Thumbs.db
 benchmarks/*.ll
 benchmarks/*_unroll
 benchmarks/*_no_unroll
+
+# LLVM pass build
+llvm-pass/build/
+llvm-pass/*.so
+llvm-pass/*.dylib
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake

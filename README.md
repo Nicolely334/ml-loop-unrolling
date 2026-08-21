@@ -55,12 +55,47 @@ Extracts 14 features per loop:
 
 See `benchmarks/README.md` for details.
 
+## Advanced Features
+
+### Compare Against LLVM
+
+See what LLVM actually decides to unroll:
+
+```bash
+# single file
+python src/extract_llvm_decisions.py benchmarks/small_loop.c
+
+# compare our features vs LLVM's decisions
+python src/compare_decisions.py
+
+# or use the script
+./scripts/compare_all.sh
+```
+
+### LLVM Pass (Experimental)
+
+Custom LLVM optimization pass that uses ML heuristics:
+
+```bash
+cd llvm-pass
+mkdir build && cd build
+cmake .. && make
+
+# test it
+cd ../..
+./scripts/test_pass.sh benchmarks/small_loop.c
+```
+
+See `llvm-pass/README.md` for details.
+
 ## TODO
 
-- [ ] Add more benchmarks
-- [ ] Try more ML models (XGBoost, etc)
-- [ ] Extract LLVM's actual unrolling decisions
-- [ ] Handle multi-file programs
+- [ ] Integrate actual ML model into LLVM pass
+- [ ] Make pass actually modify IR (currently just analyzes)
+- [ ] Better loop matching between our detection and LLVM's
+- [ ] Multi-class prediction (unroll factor: 2, 4, 8, 16)
+- [ ] Try XGBoost, neural nets
+- [ ] Real benchmark suites (SPEC, PolyBench)
 
 ## License
 
