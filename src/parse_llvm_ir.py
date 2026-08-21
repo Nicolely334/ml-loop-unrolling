@@ -114,8 +114,8 @@ class LLVMIRParser:
         functions = re.split(r'define.*?\{', self.ir_content)
         
         for func_idx, func_content in enumerate(functions[1:], 1):  # Skip preamble
-            # Find basic blocks
-            bb_pattern = r'^(\w+):\s*;.*?(?=^\w+:|^})'
+            # Find basic blocks - capture both name and content
+            bb_pattern = r'^(\w+):\s*(.*?)(?=^\w+:|^})'
             blocks = re.findall(bb_pattern, func_content, re.MULTILINE | re.DOTALL)
             
             if not blocks:
