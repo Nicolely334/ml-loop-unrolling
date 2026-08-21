@@ -54,32 +54,16 @@ Extracts 14 base features + engineered ratios:
 - **7 PolyBench kernels** - matrix multiply, stencils, graph algorithms  
 - **10 generated** - string ops, dot product, histogram, etc.
 
-Speedup range: 0.84x (unrolling hurts) to 1.37x (big win)
+Speedup range: 0.84x (unrolling hurts) to 1.37x
 
 See `RESULTS.md` for analysis.
 
 ## Results
-
-**Before**: Binary classification got 92.3% accuracy but baseline was 88.7% (almost useless)
-
-**After**: Regression predicts actual speedup
-- 84 loops, balanced dataset (38% beneficial vs 62%)
+- 84 loops
 - Random Forest MAE: ~0.05x (avg prediction error)
-- Clear patterns: stencils benefit, branches hurt
 
 See `RESULTS.md` for full analysis.
 
 ## LLVM Integration
 
 Comparison tools in `src/compare_decisions.py` and basic LLVM pass skeleton in `llvm-pass/` (TODO: integrate trained model).
-
-## TODO
-
-- Integrate trained model into LLVM pass
-- Multi-class: predict unroll factor (2x, 4x, 8x) not just speedup
-- More data from SPEC/LLVM test suite (target 500+ loops)
-- Better features (instruction mix percentages, stride patterns)
-
-## License
-
-MIT
