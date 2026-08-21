@@ -1,124 +1,67 @@
-# ML-Based Loop Unrolling Prediction
+# ML Loop Unrolling
 
-Using machine learning to help compilers decide when to unroll loops.
+Predicting when loop unrolling helps performance using machine learning on LLVM IR features.
 
-## Goal
+## How it works
 
-This project aims to predict whether loop unrolling will improve program performance based on characteristics of the loop.
+1. Compile C programs to LLVM IR
+2. Extract loop features (instruction counts, trip count, etc.)
+3. Benchmark with/without `-funroll-loops`
+4. Train ML model on the data
+5. Predict whether new loops should be unrolled
 
-## Approach
-
-1. Collect programs from the LLVM Test Suite
-2. Identify loops in LLVM IR
-3. Extract features from each loop
-4. Measure performance with and without loop unrolling
-5. Use the performance difference to create labels
-6. Train a machine learning model to predict whether unrolling will help
-7. Compare the ML model against LLVM's existing optimization behavior
-
-## Tech Stack
-- Python 3.9+
-- LLVM/Clang (for compilation and IR analysis)
-- C/C++ (benchmark programs)
-- scikit-learn (machine learning)
-- pandas, numpy (data processing)
-- matplotlib, seaborn (visualization)
-- Jupyter (notebooks)
-
-## Quick Start
-
-### 1. Install Dependencies
+## Setup
 
 ```bash
-# Install LLVM/Clang (Ubuntu/Debian)
-sudo apt install -y clang llvm
+# Install LLVM
+sudo apt install clang llvm
 
-# Install Python dependencies
+# Install Python deps
 pip install -r requirements.txt
-```
 
-See [SETUP.md](SETUP.md) for detailed installation instructions for other platforms.
-
-### 2. Verify Setup
-
-```bash
+# Verify
 python verify_setup.py
 ```
 
-### 3. Run the Pipeline
+## Usage
 
 ```bash
-# Benchmark simple_loop.c
-python src/compile_and_measure.py benchmarks/simple_loop.c
+# Collect dataset
+python src/collect_dataset.py --runs 20
 
-# Extract loop features from LLVM IR
-python src/parse_llvm_ir.py benchmarks/simple_loop.ll
+# Train models (opens notebook)
+jupyter notebook notebooks/02_train_models.ipynb
 
-# Open the validation notebook
-jupyter notebook notebooks/01_pipeline_validation.ipynb
+# Predict on new program
+python src/predict.py benchmarks/small_loop.c
 ```
 
-## Project Structure
+## Features
 
-```
-ml-loop-unrolling/
-├── benchmarks/              # C programs for benchmarking
-│   └── simple_loop.c        # Example program
-├── data/
-│   ├── raw/                # Raw benchmark results and features
-│   └── processed/          # Cleaned datasets for ML
-├── notebooks/              # Jupyter notebooks
-│   └── 01_pipeline_validation.ipynb  # End-to-end validation
-├── src/                    # Python source code
-│   ├── __init__.py
-│   ├── compile_and_measure.py  # Compilation and benchmarking
-│   └── parse_llvm_ir.py        # LLVM IR feature extraction
-├── pyproject.toml          # Python package configuration
-├── requirements.txt        # Python dependencies
-├── SETUP.md               # Detailed setup instructions
-└── README.md              # This file
-```
-
-## Pipeline Overview
-
-### 1. Compile to LLVM IR
-```bash
-clang -O0 -S -emit-llvm program.c -o program.ll
-```
-
-### 2. Extract Loop Features
-- Instruction counts (loads, stores, arithmetic, branches)
-- Trip count estimation
+Extracts 14 features per loop:
+- Instruction counts (loads, stores, branches, calls, arithmetic)
+- Trip count (estimated from IR)
 - Memory dependencies
-- Control flow characteristics
+- Control flow (exits, phi nodes)
 
-### 3. Measure Performance
-- Compile with unrolling: `clang -O3 -funroll-loops`
-- Compile without: `clang -O3 -fno-unroll-loops`
-- Time both versions (multiple runs with warmup)
+## Benchmarks
 
-### 4. Create Labels
-- `speedup = time_no_unroll / time_unroll`
-- `beneficial = speedup > 1.05` (5% threshold)
+11 C programs with different characteristics:
+- Small/large loops
+- Memory vs compute-intensive
+- Nested loops
+- Loops with branches
+- Different access patterns
 
-### 5. Train ML Model
-- Features: loop characteristics from LLVM IR
-- Labels: whether unrolling was beneficial
-- Models: Logistic Regression, Decision Trees, Random Forest
+See `benchmarks/README.md` for details.
 
-## Next Steps
+## TODO
 
-- [ ] Collect more diverse benchmark programs
-- [ ] Expand feature extraction (data dependencies, vectorization potential)
-- [ ] Build training dataset with 100+ loops
-- [ ] Train baseline ML models
-- [ ] Extract LLVM's unrolling decisions for comparison
-- [ ] Evaluate model accuracy vs LLVM heuristics
-
-## Contributing
-
-This is a research/learning project. Contributions and suggestions welcome!
+- [ ] Add more benchmarks
+- [ ] Try more ML models (XGBoost, etc)
+- [ ] Extract LLVM's actual unrolling decisions
+- [ ] Handle multi-file programs
 
 ## License
 
-MIT License - feel free to use and modify.
+MIT

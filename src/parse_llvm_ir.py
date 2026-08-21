@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""
-Parse LLVM IR files and extract loop features for machine learning.
-"""
 
 import re
 import subprocess
@@ -12,10 +9,7 @@ from typing import Dict, List, Optional
 
 @dataclass
 class LoopFeatures:
-    """Features extracted from a loop in LLVM IR."""
-
     loop_id: str
-    # Basic counts
     num_instructions: int
     num_basic_blocks: int
     num_load_instructions: int
@@ -23,22 +17,15 @@ class LoopFeatures:
     num_branches: int
     num_calls: int
     num_arithmetic_ops: int
-    
-    # Loop characteristics
     estimated_trip_count: Optional[int]
     has_constant_trip_count: bool
     nesting_depth: int
-    
-    # Data dependencies
     num_phi_nodes: int
     num_memory_dependencies: int
-    
-    # Control flow
     has_early_exit: bool
     num_exits: int
     
-    def to_dict(self) -> Dict:
-        """Convert to dictionary for DataFrame creation."""
+    def to_dict(self):
         return {
             'loop_id': self.loop_id,
             'num_instructions': self.num_instructions,
@@ -59,69 +46,34 @@ class LoopFeatures:
 
 
 class LLVMIRParser:
-    """Parse LLVM IR and extract loop information."""
-
     def __init__(self, ir_file: Path):
-        """
-        Initialize parser with an LLVM IR file.
-
-        Args:
-            ir_file: Path to .ll file
-        """
         self.ir_file = ir_file
         self.ir_content = self._read_ir()
 
-    def _read_ir(self) -> str:
-        """Read LLVM IR file content."""
+    def _read_ir(self):
         if not self.ir_file.exists():
             raise FileNotFoundError(f"IR file not found: {self.ir_file}")
         return self.ir_file.read_text()
 
-    def get_loop_info_from_opt(self) -> List[Dict]:
-        """
-        Use LLVM's opt tool to extract loop information.
-
-        Returns:
-            List of loop metadata dictionaries
-        """
+    def get_loop_info_from_opt(self):
         try:
-            # Run opt with loop analysis passes
             result = subprocess.run(
-                [
-                    "opt",
-                    "-passes=loop-simplify,loop-rotate,loop(print)",
-                    "-disable-output",
-                    str(self.ir_file),
-                ],
+                ["opt", "-passes=loop-simplify,loop-rotate,loop(print)",
+                 "-disable-output", str(self.ir_file)],
                 capture_output=True,
                 text=True,
-                check=False,  # Loop analysis warnings are expected
+                check=False,
             )
 
-            # Parse the output for loop information
             loops = []
-            loop_pattern = r"Loop at depth (\d+) containing:"
-            
-            for match in re.finditer(loop_pattern, result.stderr):
-                depth = int(match.group(1))
-                loops.append({"depth": depth})
-
+            for match in re.finditer(r"Loop at depth (\d+) containing:", result.stderr):
+                loops.append({"depth": int(match.group(1))})
             return loops
-
         except FileNotFoundError:
-            print("Warning: 'opt' tool not found. Falling back to manual parsing.")
+            # opt not available, fall back to manual parsing
             return []
 
-    def extract_basic_features(self, basic_block_content: str) -> Dict:
-        """
-        Extract basic instruction counts from a basic block.
-
-        Args:
-            basic_block_content: LLVM IR content of a basic block
-
-        Returns:
-            Dictionary of instruction counts
-        """
+    def extract_basic_features(self, basic_block_content: str):
         features = {
             'num_instructions': 0,
             'num_load': 0,
@@ -138,19 +90,13 @@ class LLVMIRParser:
                 continue
 
             features['num_instructions'] += 1
-
-            if 'load' in line:
-                features['num_load'] += 1
-            if 'store' in line:
-                features['num_store'] += 1
-            if 'br ' in line:
-                features['num_branches'] += 1
-            if 'call' in line:
-                features['num_calls'] += 1
+            if 'load' in line: features['num_load'] += 1
+            if 'store' in line: features['num_store'] += 1
+            if 'br ' in line: features['num_branches'] += 1
+            if 'call' in line: features['num_calls'] += 1
             if any(op in line for op in ['add ', 'sub ', 'mul ', 'div ', 'fadd', 'fsub', 'fmul', 'fdiv']):
                 features['num_arithmetic'] += 1
-            if 'phi ' in line:
-                features['num_phi'] += 1
+            if 'phi ' in line: features['num_phi'] += 1
 
         return features
 

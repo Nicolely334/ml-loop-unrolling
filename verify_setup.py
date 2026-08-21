@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
-"""
-Verify that the project setup is correct.
-"""
 
 import sys
 from pathlib import Path
 
 
 def check_python_version():
-    """Check Python version."""
-    print("Checking Python version...")
+    print("Checking Python...")
     version = sys.version_info
     if version.major >= 3 and version.minor >= 9:
-        print(f"  ✓ Python {version.major}.{version.minor}.{version.micro}")
+        print(f"  ✓ Python {version.major}.{version.minor}")
         return True
     else:
-        print(f"  ✗ Python {version.major}.{version.minor}.{version.micro} (need 3.9+)")
+        print(f"  ✗ Python {version.major}.{version.minor} (need 3.9+)")
         return False
 
 
