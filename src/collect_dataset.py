@@ -52,7 +52,7 @@ def collect_benchmark_data(
     try:
         # Step 1: Compile to LLVM IR
         print("[1/3] Compiling to LLVM IR...")
-        ir_file = runner.compile_to_llvm_ir(source_file, opt_level="0")
+        ir_file = runner.compile_to_llvm_ir(source_file, opt_level="O0")
 
         # Step 2: Extract loop features
         print("[2/3] Extracting loop features...")

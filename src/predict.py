@@ -45,7 +45,7 @@ def predict_unrolling_benefit(source_file: Path, model, scaler, runner: Benchmar
     print(f"\nAnalyzing: {source_file.name}")
     print("-" * 60)
     
-    ir_file = runner.compile_to_llvm_ir(source_file, opt_level="0")
+    ir_file = runner.compile_to_llvm_ir(source_file, opt_level="O0")
     print(f"✓ Compiled to IR: {ir_file}")
     
     # Extract features

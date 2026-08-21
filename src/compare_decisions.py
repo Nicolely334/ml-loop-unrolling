@@ -22,7 +22,7 @@ def analyze_program(source_file: Path, opt_level="O3"):
     
     # get our features
     print("\n[1/2] Extracting features from IR...")
-    ir_file = runner.compile_to_llvm_ir(source_file, opt_level="0")
+    ir_file = runner.compile_to_llvm_ir(source_file, opt_level="O0")
     our_features = extract_features_from_ir(ir_file)
     
     # get LLVM's decisions

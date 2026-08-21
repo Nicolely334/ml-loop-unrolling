@@ -29,7 +29,7 @@ class BenchmarkRunner:
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             raise RuntimeError(f"clang not found at '{self.clang}': {e}")
 
-    def compile_to_llvm_ir(self, source_file: Path, output_file=None, opt_level="0"):
+    def compile_to_llvm_ir(self, source_file: Path, output_file=None, opt_level="O0"):
         if output_file is None:
             output_file = source_file.with_suffix(".ll")
 
