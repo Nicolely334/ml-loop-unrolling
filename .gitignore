@@ -1,34 +1,64 @@
 # Python
 __pycache__/
 *.py[cod]
-.venv/
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
 venv/
-.env
+ENV/
+env/
+.venv
 
 # Jupyter
 .ipynb_checkpoints/
+*.ipynb_checkpoints
 
-# macOS
-.DS_Store
-
-# Compiled files
-*.o
-*.so
-*.dylib
-*.exe
-*.out
-
-# LLVM build files
-build/
-cmake-build-*/
-
-# Generated LLVM files
+# LLVM IR and compiled binaries
 *.ll
 *.bc
+*.o
+*.out
+*_unroll
+*_no_unroll
+a.out
 
-# Generated datasets
-data/raw/
-data/processed/
+# Data (keep structure, ignore contents)
+data/raw/*.csv
+data/raw/*.json
+data/processed/*.csv
+data/processed/*.json
 
-# Experiment outputs
-results/
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+*.log
+benchmarks/*.ll
+benchmarks/*_unroll
+benchmarks/*_no_unroll
